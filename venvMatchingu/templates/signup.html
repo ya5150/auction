@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+<!--静止ファイル位置呼び出し-->
+{% load static %}
+
+
+{% block customcss %}<link rel="stylesheet" href="{% static 'style.css' %}">{% endblock customcss %}
+
+
+{% block content %}
+
+
+
+<body class="text-center">
+
+    
+    <main class="form-signin">
+      <form method="POST" >
+      {% csrf_token %}
+      
+        <h1 class="h3 mb-3 fw-normal">新規登録ページ（signup）</h1>
+        
+        <div class="form-floating">
+          <input type="text" class="form-control" id="floatingInput" placeholder="username" name="username">
+          <label for="floatingInput">username</label>
+        </div>
+        <div class="form-floating">
+          <input type="password" class="form-control" id="floatingPassword" placeholder="password" name="password">
+          <label for="floatingPassword">Password</label>
+        </div>
+        
+        <div class="checkbox mb-3">
+
+        </div>
+        <button class="w-100 btn btn-lg btn-primary" type="submit">Sign in</button>
+        <p><br>{{error}}</p><!--viwrs.pyでerrorの内容が定義されたときだけ表示される、そうでない場合は空の辞書なので何も表示されない-->
+      </form>
+    </main>
+    
+    
+        
+      </body>
+      
+      {% endblock content %}

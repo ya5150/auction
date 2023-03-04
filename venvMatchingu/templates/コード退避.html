@@ -1,0 +1,34 @@
+
+
+{% extends "base.html"%}
+
+{% block header %}
+<div class="jumbotron jumbotron-fluid">
+    <div class="container">
+      <h1 class="display-4">出品物一覧</h1>
+      <p class="lead">現在の出品物です</p>
+    </div>
+  </div>
+{% endblock header%}
+
+{% block content %}
+    <div class="container">
+        <!--モデルのオブジェクトはobject_listで渡される# -->
+        {% for item in object_list %}
+        <div class="alert alert-success" role="alert">
+        <div class="alert alert-{{item.priority}}" role="alert">
+            <p>商品名{{ item.name }} |期日:{{ item.end_time }}</p>
+            <p>出品者{{ item.user }} |価格:{{ item.price }}円</p>
+            {% if item.image %}
+                <p><img src="{{ item.image.url }}" alt="{{ item.name }}" class="img-fluid"width=></p>
+            {% else %}
+                <p>No image available</p>
+            {% endif %}
+            
+            <a class="btn btn-info" href="{% url 'product_detail' item.slug %}" role="button">商品詳細画面</a>
+        </div>
+          </div>
+        {% endfor %}
+    </div>
+
+{% endblock content %}

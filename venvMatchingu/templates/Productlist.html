@@ -1,0 +1,209 @@
+{% extends "base.html"%}
+
+{% block header %}
+<div class="jumbotron jumbotron-fluid">
+    <div class="container">
+      <h1 class="display-4">出品物一覧</h1>
+      <p class="lead">現在の出品物です</p>
+    </div>
+  </div>
+  <!--自作関数お試し用
+  {% load sets %}
+{{ search_name }}:
+{{ request.GET.search_name }}
+{% sets search_name request.GET.search_name as search_name%}
+{{ search_name }}:
+{{ request.GET.search_name }}
+-->
+{% endblock header%}
+
+
+
+
+{% block content %}
+<!--ページネーション処理-->
+<div class="pagination justify-content-center">
+    
+    {% if page_obj.has_other_pages %}
+    {% if page_obj.number > 1 %}
+        <!-- 最初のページへのリンク -->
+        <a href="?page=1&search_name={{request.GET.search_name }}" class="page-link">最初のページ</a>
+    {% else %}
+        <!-- 現在、最初のページにいる場合は、クリックできないリンクを表示 -->
+        <a href="#" class="page-link">最初のページ</a>
+    {% endif %}
+    {% else %}
+    {% endif %}
+    
+    {% if page_obj.has_previous %}
+        <!-- 前のページへのリンク http://127.0.0.1:8000/productlist/?search_name=検索後
+        　　　のようなページ数と検索窓のワードを埋め込んだurlを作成する-->
+        <a href="?page={{ page_obj.previous_page_number }}&search_name={{request.GET.search_name }}&my_select={{request.GET.my_select}}" class="page-link">前へ</a>
+    {% else %}
+        <!-- 現在、最初のページにいる場合は、クリックできないリンクを表示 -->
+        <span class="disabled page-link">前へ</span>
+    {% endif %}
+
+    <!-- 現在のページの表示 -->
+    <span class="current-page page-link" style="pointer-events:none;">
+        {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}.
+    </span>
+    
+    {% if page_obj.has_next %}
+        <!-- 次のページへのリンク -->
+        <a href="?page={{ page_obj.next_page_number }}&search_name={{request.GET.search_name }}&my_select={{request.GET.my_select}}" class="page-link">次へ</a>
+    {% else %}
+        <!-- 現在、最後のページにいる場合は、クリックできないリンクを表示 -->
+        <span class="disabled page-link">次へ</span>
+    {% endif %}
+    
+    {% if page_obj.has_other_pages %}
+        {% if page_obj.number < page_obj.paginator.num_pages %}
+            <!-- 最後のページへのリンク -->
+            <a href="?page={{ page_obj.paginator.num_pages }}&search_name={{request.GET.search_name }}&my_select={{request.GET.my_select}}" class="page-link">最後のページ</a>
+        {% else %}
+            <!-- 現在、最後のページにいる場合は、クリックできないリンクを表示 -->
+            <a href="#" class="page-link">最後のページ</a>
+        {% endif %}
+    {% endif %}
+        
+</div>
+<!--ページネーション処理ここまで-->
+
+
+    <div class="container">
+    <!--検索窓とコンボボックス入力フォーム-->
+        <form method="GET" class="form-inline my-2 my-lg-0">
+        <!--検索窓-->
+          <!--<input class=bootstrapスタイル指定 , name="views.pyで使用する名前",value="{{ request.GET.search }}"で前回の検索内容を引用-->
+          <input class="form-control mr-sm-2" type="text" name="search_name" placeholder="商品名を入力してください" value="{{ request.GET.search_name }}">
+        <!--検索窓ここまで-->
+
+<!-- 選択肢のあるコンボボックス-->
+<style>
+    .form-group {
+      width: 45%;
+      margin: 0 auto;
+    }
+  </style>
+  
+  
+  <div class="form-group">
+    <div class="col-sm-6">
+      <label for="exampleFormControlSelect1">並び替え</label>
+      
+      <select class="form-control" id="exampleFormControlSelect1" name="my_select" >
+        <!--前のページのmy_selectを参照して、最初に表示する選択肢を決めておく-->
+        <option value="option1"{% if request.GET.my_select == "option1" %} selected{% endif %}>並び替えない</option>
+        <option value="option2"{% if request.GET.my_select == "option2" %} selected{% endif %}>安い順</option>
+        <option value="option3"{% if request.GET.my_select == "option3" %} selected{% endif %}>高い順</option>
+      </select>
+    </div>
+  </div>
+  <!-- 選択肢のあるコンボボックスここまで -->
+  
+  
+          <button class="btn btn-secondary my-2 my-sm-0" type="submit">検索</button>
+        </form>
+        <!--検索窓とコンボボックス入力フォームここまで-->
+        
+        
+        <!--productlistを表示していく-->
+        {% for item in object_list %}
+        {% if search_name in item.name %}
+          <div class="alert alert-success" role="alert">
+            <div class="alert alert-success" role="alert">
+              <p>商品名{{ item.name }} |終了時間:{{ item.end_time }}</p>
+              <p>出品者{{ item.user }} |価格:{{ item.price }}円</p>
+        
+              <!-- 時計 -->
+              <p id="countdown-{{item.pk}}"></p>
+              <script>
+                function countdown{{item.pk}}(endTime) {
+                  var endTime = new Date(endTime); // 終了時刻を設定
+                  var now = new Date(); // 現在時刻を取得
+                  var diff = endTime.getTime() - now.getTime(); // 残り時間を計算
+                  if (diff <= 0) {
+                    // 残り時間が0以下の場合は、終了メッセージを表示
+                    document.getElementById("countdown-{{item.pk}}").textContent = "オークションは終了しました。";
+                    return;
+                  }
+                  // 残り時間を時分秒に変換
+                  var days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                  var hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                  var minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                  var seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                  // 残り時間を表示
+                  var countdown = document.getElementById("countdown-{{item.pk}}");
+                  countdown.textContent = "残り時間：" + days + "日" + hours + "時間" + minutes + "分" + seconds + "秒";
+                }
+                // 1秒ごとに残り時間を更新する
+                setInterval(function() {countdown{{item.pk}}('{{ item.end_time|date:"Y-m-d\\TH:i:s" }}')}, 1000);
+              </script>
+              <!-- 時計 -->
+        
+              {% if item.image %}
+                <p><img src="{{ item.image.url }}" alt="{{ item.name }}" class="img-fluid"width=200></p>
+              {% else %}
+                <p>No image available</p>
+              {% endif %}
+              <a class="btn btn-info" href="{% url 'product_detail' item.slug %}" role="button">商品詳細画面</a>
+            </div>
+          </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+    <!--ページネーション処理-->
+    <div class="pagination justify-content-center">
+        
+        {% if page_obj.has_other_pages %}
+        {% if page_obj.number > 1 %}
+            <!-- 最初のページへのリンク -->
+            <a href="?page=1&search_name={{request.GET.search_name }}" class="page-link">最初のページ</a>
+        {% else %}
+            <!-- 現在、最初のページにいる場合は、クリックできないリンクを表示 -->
+            <a href="#" class="page-link">最初のページ</a>
+        {% endif %}
+        {% else %}
+        {% endif %}
+        
+        {% if page_obj.has_previous %}
+            <!-- 前のページへのリンク http://127.0.0.1:8000/productlist/?search_name=検索後
+            　　　のようなページ数と検索窓のワードを埋め込んだurlを作成する-->
+            <a href="?page={{ page_obj.previous_page_number }}&search_name={{request.GET.search_name }}&my_select={{request.GET.my_select}}" class="page-link">前へ</a>
+        {% else %}
+            <!-- 現在、最初のページにいる場合は、クリックできないリンクを表示 -->
+            <span class="disabled page-link">前へ</span>
+        {% endif %}
+    
+        <!-- 現在のページの表示 -->
+        <span class="current-page page-link" style="pointer-events:none;">
+            {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}.
+        </span>
+        
+        {% if page_obj.has_next %}
+            <!-- 次のページへのリンク -->
+            <a href="?page={{ page_obj.next_page_number }}&search_name={{request.GET.search_name }}&my_select={{request.GET.my_select}}" class="page-link">次へ</a>
+        {% else %}
+            <!-- 現在、最後のページにいる場合は、クリックできないリンクを表示 -->
+            <span class="disabled page-link">次へ</span>
+        {% endif %}
+        
+        {% if page_obj.has_other_pages %}
+            {% if page_obj.number < page_obj.paginator.num_pages %}
+                <!-- 最後のページへのリンク -->
+                <a href="?page={{ page_obj.paginator.num_pages }}&search_name={{request.GET.search_name }}&my_select={{request.GET.my_select}}" class="page-link">最後のページ</a>
+            {% else %}
+                <!-- 現在、最後のページにいる場合は、クリックできないリンクを表示 -->
+                <a href="#" class="page-link">最後のページ</a>
+            {% endif %}
+        {% endif %}
+            
+    </div>
+    <!--ページネーション処理ここまで-->
+    
+
+{% endblock content %}
+
+
+

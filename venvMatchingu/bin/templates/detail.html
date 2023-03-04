@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block header %}
+<div class="alert alert-primary" role="alert">
+    <h3>詳細ページ</h3>
+</div>
+
+{% endblock header %}
+
+
+
+{% block content %}
+
+{% if user.is_authenticated %}<!--#もしユーザーがログインしているならば-->
+
+
+
+<div class="container"><!--幅を調整する-->
+    
+
+    <div class="alert alert-success" role="alert">
+    <p>タイトル:{{ object.title }}</p>
+    <p>投稿者:{{ object.author }}</p>
+    <!--.urlでurlを取得しimageタグで囲っていくことで画像を表示する-->
+    <p><img src="{{object.snsimage.url}}"width=300></p>
+
+    <a class="btn btn-primary" href="{% url 'good' object.pk %}" role="button">いいね</a>
+    <a class="btn btn-secondary" href="{% url 'read' object.pk %}" role="button">既読にする</a>
+    </div>
+   
+    <a href="{% url 'logout' %}">logout</a>
+</div>
+{% else %}<!--#ユーザーがログインしていないならば-->
+    <p>ログインしてください</p>
+{% endif %}
+
+{% endblock content%}

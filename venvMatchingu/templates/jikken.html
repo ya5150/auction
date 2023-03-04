@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Dynamic Clock using JavaScript</title>
+  </head>
+  <body>
+    <h1 id="clock"></h1>
+    <script>
+      function displayTime() {
+        var now = new Date(); // 現在の時刻を取得
+        var hours = now.getHours();
+        var minutes = now.getMinutes();
+        var seconds = now.getSeconds();
+        var meridiem = "AM"; // デフォルトはAMとする
+        // 12時間制に変換
+        if (hours > 12) {
+          hours -= 12;
+          meridiem = "PM";
+        }
+        // 0埋めして2桁にする
+        if (hours < 10) {
+          hours = "0" + hours;
+        }
+        if (minutes < 10) {
+          minutes = "0" + minutes;
+        }
+        if (seconds < 10) {
+          seconds = "0" + seconds;
+        }
+        // 時計を表示
+        var clock = document.getElementById("clock");
+        clock.textContent = hours + ":" + minutes + ":" + seconds + " " + meridiem;
+      }
+      // 1秒ごとに時計を更新する
+      setInterval(displayTime, 1000);
+    </script>
+  </body>
+</html>
+

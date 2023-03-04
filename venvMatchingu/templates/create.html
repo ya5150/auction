@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block header %}
+<div class="alert alert-primary" role="alert">
+    <h3>入力フォーム</h3>
+</div>
+{% endblock header %}
+
+
+{% block content %}
+
+<form method="POST" enctype="multipart/form-data">{% csrf_token %}
+<p>title:<input type="text" name="title"></p>
+<p>content:<input type="text" name="content"></p>
+<p><input type="file" name="snsimage"></p>
+
+<!--ユーザー名を取ってくる、hiddenは裏でやりとりするがパスワードなどをやり取りすると露見する可能性があるので留意する-->
+<input type="hidden" name="author" value="{{user.username}}">
+
+<input type="submit" name="create">
+</form>
+
+{% endblock content %}
