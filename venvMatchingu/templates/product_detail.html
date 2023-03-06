@@ -8,6 +8,21 @@
 {% endblock header %}
 
 {% block content %}
+<!--ポップアップの表示-->
+<script>
+  window.onload = function() {
+    // Get the value of the 'success' URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const successMessage = urlParams.get('success');
+    
+    // If the 'success' parameter exists, show a pop-up with the message
+    if (successMessage) {
+      alert(successMessage);
+    }
+  }
+</script>
+<!--ポップアップの表示-->
+
 <div class="container">
   <div class="row">
     <div class="col-md-6">
@@ -19,6 +34,20 @@
       <p>価格: {{ product.price }} 円</p>
       <p>出品者: {{ product.user.username }}</p>
       <p>終了時刻: {{ product.end_time }}</p>
+      {% if product.highest_bidder == None %}
+        <p>入札者:なし</p>
+      {% else %}
+      <p>最高入札者:{{product.highest_bidder}}</p>
+      {% endif %}
+      <p>入札者一覧:</p>
+      <ul>
+      {% for buyer in product.buyers.all %}
+          <li>{{ buyer.username }}</li>
+      {% empty %}
+          <li>入札者がいません。</li>
+      {% endfor %}
+      </ul>
+      
       
       
       <!--時計-->
@@ -28,11 +57,17 @@
           var endTime = new Date(endTime); // 終了時刻を設定
           var now = new Date(); // 現在時刻を取得
           var diff = endTime.getTime() - now.getTime(); // 残り時間を計算
+          var time_over=false;
           if (diff <= 0) {
             // 残り時間が0以下の場合は、終了メッセージを表示
             document.getElementById("countdown").textContent = "オークションは終了しました。";
+            time_over=true;
             return;
           }
+          //time_overの値をhtmlで扱えるようにする。
+          //idがtime_overである要素を取得し、その要素のvalue属性にtime_overという変数の値をセットしています。
+          document.getElementById("time_over").value = time_over;
+          
           // 残り時間を時分秒に変換
           var days = Math.floor(diff / (1000 * 60 * 60 * 24));
           var hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -48,6 +83,21 @@
       <!--時計-->
       
       
+      {% if product.sold == False %}
+        <form method="POST">
+          {% csrf_token %}
+          <div class="form-group">
+            <label for="bid-price">入札価格:</label>
+            <input type="number" name="bid_price" id="bid-price" class="form-control" required>
+          </div>
+          <input type="hidden" name="time_over" id="time_over">
+          <button type="submit" class="btn btn-primary">入札する</button>
+        </form>
+      
+    {% else %}
+      <p>このオークションは終了しました。</p>
+    {% endif %}
+    product.sold={{product.sold}}
       
       
     </div>

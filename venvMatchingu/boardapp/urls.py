@@ -13,9 +13,9 @@ urlpatterns = [
     path("read/<int:pk>", views.readfunc, name="read"),
     path("create/",views.boardcreate.as_view(), name="create"),
     path('product/<int:user_id>', views.user_products, name='user_products'),
-    path('product/<slug:slug>', views.product_detail, name='product_detail'),
+    path('product/<slug:slug>/', views.product_detail, name='product_detail'),
     path('productcreate/', views.productcreate, name='productcreate'),
     path('productlist/', views.Productlist.as_view(), name='Productlist'),
-
+    path('productnyusatu/<int:user_id>', views.user_nyusatu_products, name='user_nyusatu_products'),
 ]
 

@@ -115,6 +115,19 @@
             <div class="alert alert-success" role="alert">
               <p>商品名{{ item.name }} |終了時間:{{ item.end_time }}</p>
               <p>出品者{{ item.user }} |価格:{{ item.price }}円</p>
+              {% if item.highest_bidder == None %}
+              <p>入札者:なし</p>
+              {% else %}
+              <p>最高入札者:{{item.highest_bidder}}</p>
+              {% endif %}
+              <p>入札者一覧:</p>
+              <ul>
+              {% for buyer in item.buyers.all %}
+                  <li>{{ buyer.username }}</li>
+              {% empty %}
+                  <li>入札者がいません。</li>
+              {% endfor %}
+              </ul>
         
               <!-- 時計 -->
               <p id="countdown-{{item.pk}}"></p>

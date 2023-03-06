@@ -13,7 +13,7 @@
 
 {% if user.is_authenticated %}<!--#もしユーザーがログインしているならば-->
 
-  <h1><p>{{ user.username }} 様の出品物</p></h1>
+  <h1><p>{{ user.username }} 様の入札物</p></h1>
   {% if products %}
   <ul class="list-group">
     {% for product in products %}
@@ -37,6 +37,14 @@
           {% else %}
             <p>最高入札者:{{product.highest_bidder}}</p>
           {% endif %}
+          <p>入札者一覧:</p>
+          <ul>
+          {% for buyer in product.buyers.all %}
+              <li>{{ buyer.username }}</li>
+          {% empty %}
+              <li>入札者がいません。</li>
+          {% endfor %}
+          </ul>
                         <!-- 時計 -->
                         <p id="countdown-{{product.pk}}"></p>
                         <script>
@@ -68,7 +76,7 @@
   {% endfor %}
   </ul>
 {% else %}
-  <p>出品物はありません</p>
+  <p>入札物はありません</p>
 {% endif %}
 {% else %}<!--#ユーザーがログインしていないならば-->
     <p>ログインしてください</p>

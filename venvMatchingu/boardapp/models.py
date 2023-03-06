@@ -4,8 +4,11 @@ from django.contrib.auth.models import User
 import datetime
 import time
 from django.utils.text import slugify
+from django.shortcuts import get_object_or_404, redirect, render
 
 # Create your models here.
+
+
 
 class   boardmodel(models.Model):
     title = models.CharField(max_length=200)
@@ -42,8 +45,25 @@ class Product(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     slug = models.SlugField(unique=False)
     bid_name = models.CharField(max_length=255, null=True, blank=True, unique=False)
-    buyer = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='bought_products')
     sold = models.BooleanField(default=False,null=True, blank=True, unique=False)
+    buyers = models.ManyToManyField(
+    User, # 関連付けるモデルを指定する
+    blank=True, # フィールドが必須でないことを示す（フォームの空欄を許可）
+    null=True, # 入札者が最初は存在しないことを示す
+    related_name='bought_products',
+    # related_nameで、逆参照名を指定することでUserオブジェクトからProductオブジェクトにアクセスすることができます。
+    #例えば、Userオブジェクトのインスタンスuserがある場合、
+    #user.bought_products.all()を使用することで、
+    #Userオブジェクトに関連付けられたすべてのProductオブジェクトにアクセスすることができます
+    )
+    highest_bidder = models.ForeignKey(#最高入札者
+    User,
+    on_delete=models.SET_NULL,
+    related_name='highest_bids',
+    null=True,
+    blank=True,
+    default="",
+    )
 
     def save(self, *args, **kwargs):#一意のスラグを作成する
         if not self.pk:#新しいオブジェクトが作成された時のみスラグを生成
@@ -54,9 +74,7 @@ class Product(models.Model):
                 self.slug = '%s-%d' % (orig, count)
         super().save(*args, **kwargs)
 
-        
-        
-        
+
 class Product2(models.Model):#商品データを扱う
     name = models.CharField(max_length=255)
     description = models.TextField()

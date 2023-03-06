@@ -16,8 +16,23 @@ from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
+from django.contrib.auth.models import User
+from django.urls import reverse
+from django.http import HttpResponseRedirect
 
 
+@login_required # ログインが必要なので、ログインしていない場合はログイン画面にリダイレクトされる
+def bid(request, pk):
+    product = get_object_or_404(Product, pk=pk) # pkに一致するProductオブジェクトを取得、存在しなければ404エラーを返す
+    if request.method == 'POST':
+        bid_price = int(request.POST['bid_price']) # フォームから送信された入札価格を取得
+        if bid_price > product.price: # 入札価格が現在の価格を上回っている場合
+            # Bidオブジェクトを作成して保存
+            product.buyer = request.user
+            product.price = bid_price # 入札価格を現在の価格に更新
+            product.save()
+        return redirect(reverse('auction:detail', args=(pk,))) # 詳細画面にリダイレクト
+    return redirect('auction:index') # POSTでなければ、トップページにリダイレクト
 
 
 #class Productlist(ListView):#出品物を全て表示する
@@ -90,10 +105,43 @@ def productcreate(request):#ユーザーが出品できるようにする
         form = ProductForm()#getの時、空のフォームを表示
     return render(request, 'product_create.html', {'form': form})
 
-def product_detail(request, slug):#商品の詳細情報,product_create成功時の遷移先
-    print("product_detailが実行されました")
+def product_detail(request, slug):#商品の詳細情報,product_create成功時の遷移先,入札処理も行う
     product = get_object_or_404(Product, slug=slug)
-    return render(request, 'product_detail.html', {'product': product})
+    if request.method == 'POST':
+        print("入札ボタンが押されました")
+        bid_price = request.POST.get('bid_price')
+        time_over = request.POST.get('time_over')
+        if not request.user.is_authenticated:
+            return HttpResponseRedirect('/product/{}/?success={}'.format(slug, "ログイン無しでは入札できません"))
+        if request.user.username == product.user.username:
+            return HttpResponseRedirect('/product/{}/?success={}'.format(slug, "出品者は入札できません"))
+        if str(request.user.username) == str(product.highest_bidder):
+            return HttpResponseRedirect('/product/{}/?success={}'.format(slug, "最高入札者は入札できません"))
+        if time_over == "false":
+            print("入札可能です")
+            if float(bid_price) > product.price:# 入札価格が商品価格を上回っている場合
+                print("入札できました")
+                # 入札を保存
+                # 商品の価格を更新
+                product.price = float(bid_price)
+                #最高入札者を更新
+                product.highest_bidder=request.user
+                product.save()
+                # 入札者一覧を追加
+                product.buyers.add(request.user)
+
+                return HttpResponseRedirect('/product/{}/?success={}'.format(slug, "入札が完了しました"))
+
+            else:
+                # 入札価格が商品価格以下の場合
+                print("入札価格が商品価格以下です")
+                return HttpResponseRedirect('/product/{}/?success={}'.format(slug, "入札価格が商品の価格より少ないです"))
+        else:
+            print("オークションは終了しています")
+            return HttpResponseRedirect('/product/{}/?success={}'.format(slug, "オークションは終了しています"))
+    else:
+        print("product_detailがgetで実行されました")
+        return render(request, 'product_detail.html', {'product': product})
 
 
 
@@ -105,6 +153,15 @@ def user_products(request, user_id):#ログインしているユーザーの商�
         'products': products
     }
     return render(request, 'user_products.html', context)
+    
+    
+@login_required
+def user_nyusatu_products(request, user_id):
+    products = Product.objects.filter(buyers=request.user)
+    context = {
+        'products': products
+    }
+    return render(request, 'user_nyusatu.html', context)
 
 
 def signupfunc(request):#新規会員登録
