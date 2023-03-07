@@ -20,6 +20,20 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 
+# views.py
+
+from boardapp.task import auction_end_check
+
+
+from boardapp.task import auction_end_check
+from django.http import HttpResponse
+
+
+def my_view(request):
+    result = auction_end_check.delay()
+    # ... 他の処理 ...
+    return HttpResponse("Task started")
+
 
 @login_required # ログインが必要なので、ログインしていない場合はログイン画面にリダイレクトされる
 def bid(request, pk):

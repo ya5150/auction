@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "boardapp.apps.BoardappConfig",
+    'django_celery_beat',
+    'django_celery_results',
 ]
 
 MIDDLEWARE = [
@@ -142,3 +144,74 @@ STATICFILES_DIRS = [
 ]
 
 LOGIN_URL = "login"
+
+
+
+# settings.py
+import os
+
+# RabbitMQの接続情報
+BROKER_HOST = 'http://127.0.0.1/'
+BROKER_PORT = 5672
+BROKER_VHOST = '/'
+BROKER_USER = 'username'
+BROKER_PASSWORD = 'password'
+
+# Celeryの設定
+CELERY_BROKER_URL = f'amqp://{BROKER_USER}:{BROKER_PASSWORD}@{BROKER_HOST}:{BROKER_PORT}/{BROKER_VHOST}'
+CELERY_RESULT_BACKEND = 'rpc://'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TIMEZONE = 'Asia/Tokyo'
+CELERY_ENABLE_UTC = True
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
+# Django Celery Beatの設定
+CELERY_BEAT_SCHEDULE = {
+    'auction_end_check': {
+        'task': 'boardapp.task.auction_end_check',
+        'schedule': 10, # 1分ごとに実行
+    },
+}
+
+# Django Celery Resultsの設定
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_CACHE_BACKEND = 'django-cache'
+
+
+# ローカル開発環境の場合のみ有効にする
+if os.environ.get('DJANGO_DEVELOPMENT') == 'True':
+    INSTALLED_APPS += ['debug_toolbar']
+
+    MIDDLEWARE = [
+        'debug_toolbar.middleware.DebugToolbarMiddleware',
+        # ... 他のミドルウェア
+    ]
+
+    # Django Debug Toolbarの設定
+    DEBUG_TOOLBAR_CONFIG = {
+        'SHOW_COLLAPSED': True,
+    }
+    
+BROKER_URL = 'amqp://username:password@127.0.0.1:5672//'
+CELERY_RESULT_BACKEND = 'amqp://username:password@127.0.0.1:5672//'
+# settings.py
+
+CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672//'
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_ALWAYS_EAGER = False
+CELERY_TASK_SERIALIZER = 'json'
+from celery import Celery
+
+app = Celery('proj')
+app.config_from_object('django.conf:settings', namespace='CELERY')
+app.autodiscover_tasks()
+
+# CELERY_IMPORTS の設定
+CELERY_IMPORTS = (
+    "boardapp.task",
+)
