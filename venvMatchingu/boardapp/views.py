@@ -73,7 +73,8 @@ class Productlist(ListView):#listviewは全ての指定モデルのオブジェ�
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        
+        #出品期限切れで前でソート
+        queryset = queryset.filter(sold=False).order_by('-end_time')
         # 検索ワードがある場合は絞り込み
         search_word = self.request.GET.get('search_name', '')
         if search_word:
@@ -96,6 +97,53 @@ class Productlist(ListView):#listviewは全ての指定モデルのオブジェ�
         context['search_name'] = self.request.GET.get('search', '')
         # contextを返す
         return context
+
+class Productlistafter(ListView):#listviewは全ての指定モデルのオブジェクトを得る
+
+#継承元listviewの実行順
+#setup(): Viewの初期化を行う
+#dispatch(): リクエストを処理するHTTPメソッドに基づいて適切なメソッドを呼び出す
+#http_method_not_allowed(): dispatch()が許可されていないHTTPメソッドを受信した場合に呼び出される
+#get_template_names(): テンプレート名を返す
+#get_queryset(): クエリセットを返す
+#get_context_object_name(): コンテキスト変数の名前を返す
+#get_context_data(): テンプレートに渡すコンテキストを返す
+#get(): HTTP GETメソッドでリクエストされた場合に呼び出される
+#render_to_response(): HttpResponseを返す
+
+
+    model = Product
+    template_name = "productlistafter.html"
+    paginate_by = 5#ページネーション、１ページにオブジェクトを5件ずつ表示する
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        #出品期限切れでソート
+        queryset = queryset.filter(sold=True).order_by('end_time')
+        # 検索ワードがある場合は絞り込み
+        search_word = self.request.GET.get('search_name', '')
+        if search_word:
+            queryset = queryset.filter(name__contains=search_word)
+    
+        # ソートオプションがある場合は並び替え
+        sort_option = self.request.GET.get('my_select', '')
+        if sort_option == 'option2':
+            queryset = queryset.order_by('price')
+        elif sort_option == 'option3':
+            queryset = queryset.order_by('-price')
+    
+        return queryset
+
+
+    def get_context_data(self, **kwargs):
+        # 親クラスのget_context_data()を呼び出す
+        context = super().get_context_data(**kwargs)
+        # 検索フォームの初期値として、前回の検索語を渡す
+        context['search_name'] = self.request.GET.get('search', '')
+        # contextを返す
+        return context
+
+
 
 
 
@@ -172,10 +220,23 @@ def user_products(request, user_id):#ログインしているユーザーの商�
 @login_required
 def user_nyusatu_products(request, user_id):
     products = Product.objects.filter(buyers=request.user)
+    #出品期限前でソート
+    products= products.filter(sold=False).order_by('end_time')
     context = {
         'products': products
     }
     return render(request, 'user_nyusatu.html', context)
+    
+@login_required
+def rakusatu(request, user_id):
+    products = Product.objects.filter(buyers=request.user)
+    #出品期限後でソート
+    products= products.filter(sold=True).order_by('end_time')
+    context = {
+        'products': products
+    }
+    return render(request, 'rakusatu.html', context)
+
 
 
 def signupfunc(request):#新規会員登録
